@@ -17,8 +17,9 @@ public:
     void SetDirection(float xdir, float ydir);
 
     float _xdir, _ydir;
+    
 private:
-    SDL_Texture* balltexture;
+    SDL_Texture* texture;
 };
 
 #endif 

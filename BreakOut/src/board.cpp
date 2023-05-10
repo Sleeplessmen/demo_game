@@ -2,17 +2,18 @@
 #include <stdlib.h>
 #include <time.h>
 
-Board::Board(SDL_Renderer* renderer):Entity(renderer)
+Board::Board(SDL_Renderer* renderer): Entity(renderer)
 {
-    SDL_Surface* surface = IMG_Load("bricks.png");
+    SDL_Surface* surface = IMG_Load("src/bricks.png");
     bricktexture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    surface = IMG_Load("side.png");
+    surface = IMG_Load("src/side.png");
     sidetexture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
     srand(time(0));
+
     x = 16;
     y = 0;
     width = 768;

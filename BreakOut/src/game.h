@@ -9,6 +9,8 @@
 #include "paddle.h"
 
 #define FPS_DELAY 500
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
 
 class Game
 {
@@ -18,9 +20,11 @@ public:
 
     bool Init();
     void Run();
+
 private:
     SDL_Window* mWin;
     SDL_Renderer* mRend;
+    
     SDL_Texture* mText;
 
     // Timing
@@ -39,16 +43,14 @@ private:
     void Render(float deltatime);
 
     void NewGame();
-    void Reset();
-    void ResetBall();
+    void ResetPaddle();
+    void StickBall();
 
     void SetPaddle(float x);
 
     void ball_boardCollisions();
-
     void ball_paddleCollisions();
     float paddle_ballReflection(float hitpointx);
-
     void ball_brickCollisions();
     void ball_brickResponse(int dirindex);
     int GetBrickCount();

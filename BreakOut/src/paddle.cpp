@@ -1,16 +1,15 @@
 #include "paddle.h"
-#include "math.h"
+#include <cmath>
 
 Paddle::Paddle(SDL_Renderer* renderer): Entity(renderer)
 {
-    SDL_Surface* surface = IMG_Load("paddle.png");
+    SDL_Surface* surface = IMG_Load("src/paddle.png");
     ptexture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
     width = 128;
     height = 32;
-    
-    // x
+
     y = 560;
 }
 
@@ -27,9 +26,9 @@ void Paddle::Update(float deltatime)
 void Paddle::Render(float deltatime)
 {
     SDL_Rect rect;
-    rect.x = round(x);
-    rect.y = round(y);
+    rect.x = int(x + 0.5f);
+    rect.y = int(y + 0.5f);
     rect.w = width;
     rect.h = height;
-    SDL_RenderCopy(mRend, ptexture, 0, &rect);
+    SDL_RenderCopy(mRend, ptexture, nullptr, &rect);
 }

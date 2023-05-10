@@ -4,8 +4,8 @@
 
 Game::Game()
 {
-    mWin = NULL;
-    mRend = NULL;
+    mWin = 0;
+    mRend = 0;
 }
 
 Game::~Game()
@@ -15,14 +15,15 @@ Game::~Game()
 
 bool Game::Init()
 {
-    if(SDL_Init(SDL_INIT_EVERYTHING) < 0) 
+    if(SDL_Init(SDL_INIT_VIDEO) < 0) 
     {
         std::cout << "Error init: " << SDL_GetError() << std::endl;
         return false;
     }
 
     // create window
-    mWin = SDL_CreateWindow("BREAK OUT", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+    mWin = SDL_CreateWindow("BREAK OUT",
+     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL);
     if(!mWin)
     {
         std::cout << "Error creating window: " << SDL_GetError() << std::endl;
@@ -50,6 +51,7 @@ bool Game::Init()
 
     testx = 0;
     testy = 0;
+
     return true;
 }
 
@@ -63,37 +65,37 @@ void Game::Run()
     NewGame();
 
     // Main loop
-    while (1) {
+    while (true) {
         // Handler events
         SDL_Event e;
         if (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
+            if (e.type == SDL_QUIT) 
+            {
                 break;
             }
         }
 
         // Calculate delta and fps
         unsigned int curtick = SDL_GetTicks();
-        float delta = (curtick - lasttick) / 1000.0f;
+        float dt = (curtick - lasttick) / 1000.0f;
         if (curtick - fpstick >= FPS_DELAY) {
             fps = framecount * (1000.0f / (curtick - fpstick));
             fpstick = curtick;
             framecount = 0;
-            std::cout << "FPS: " << fps << std::endl;
             char buf[100];
-            snprintf(buf, 100, "breakout", fps);
+            snprintf(buf, 100, "Breakout_remake(fps: %u)", fps);
             SDL_SetWindowTitle(mWin, buf);
-        } 
-        
-        else {
+        }
+        else 
+        {
             framecount++;
         }
         
         lasttick = curtick;
 
         // Update and render the game
-        Update(delta);
-        Render(delta);
+        Update(dt);
+        Render(dt);
     }
 
     delete mBoard;
@@ -130,7 +132,7 @@ void Game::Update(float deltatime)
 
     if(paddlestick)
     {
-        ResetBall();
+        StickBall();
     }
 
     ball_boardCollisions();
@@ -144,13 +146,13 @@ void Game::Update(float deltatime)
 
     mBoard->Update(deltatime);
     mPad->Update(deltatime);
-    if(!paddlestick) mBall->Update(deltatime);
-
+    mBall->Update(deltatime);
 }
 
 
 void Game::Render(float deltatime)
 {
+    SDL_SetRenderDrawColor(mRend, 0, 0, 0, 255);
     SDL_RenderClear(mRend);
 
     mBoard->Render(deltatime);
@@ -163,16 +165,14 @@ void Game::Render(float deltatime)
 void Game::NewGame()
 {
     mBoard->createLevel();
-    Reset();
+    ResetPaddle();
 }
-
-void Game::Reset()
-{   
+void Game::ResetPaddle()
+{  
     paddlestick = true;
-    ResetBall();
+    StickBall();
 }
-
-void Game::ResetBall() 
+void Game::StickBall() 
 {
     mBall->x = mPad->x + mPad->width/2 - mBall->width/2;
     mBall->y = mPad->y - mBall->height;
@@ -202,11 +202,11 @@ void Game::ball_boardCollisions()
         mBall->y = mBoard->y;
         // reflect
         mBall->_ydir *= -1;
-    }
+    } 
     else if(mBall->y + mBall->height > mBoard->y + mBoard->height)
     {
         // ball lost
-        Reset();
+        ResetPaddle();
     }
 
     // left and right
@@ -384,11 +384,7 @@ int Game::GetBrickCount()
     {
         for(int j = 0; j < BOARD_HEIGHT; j++)
         {
-            Brick brick = mBoard->bricks[i][j];
-            if(brick.state)
-            {
-                brickcount++;
-            }
+            if(mBoard->bricks[i][j].state) brickcount++;
         }
     }
     return brickcount;
