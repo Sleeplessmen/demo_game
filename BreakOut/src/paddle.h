@@ -13,7 +13,7 @@ public:
     void Render(float deltatime);
 
 private:
-    SDL_Texture* ptexture;
+    SDL_Texture* texture;
 };
 
 #endif

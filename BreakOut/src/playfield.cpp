@@ -1,15 +1,11 @@
-#include "board.h"
+#include "playfield.h"
 #include <stdlib.h>
 #include <time.h>
 
-Board::Board(SDL_Renderer* renderer): Entity(renderer)
+Playfield::Playfield(SDL_Renderer* renderer): Entity(renderer)
 {
     SDL_Surface* surface = IMG_Load("src/bricks.png");
-    bricktexture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-
-    surface = IMG_Load("src/side.png");
-    sidetexture = SDL_CreateTextureFromSurface(renderer, surface);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
     srand(time(0));
@@ -24,22 +20,22 @@ Board::Board(SDL_Renderer* renderer): Entity(renderer)
 }
 
 
-Board::~Board()
+Playfield::~Playfield()
 {
-    SDL_DestroyTexture(bricktexture);
-    SDL_DestroyTexture(sidetexture);
+    SDL_DestroyTexture(texture);
 }
 
-void Board::Update(float deltatime)
+void Playfield::Update(float deltatime)
 {
 
 }
 
-void Board::Render(float deltatime)
+void Playfield::Render(float deltatime)
 {
-    for(int i = 0; i < BOARD_WIDTH; i++) 
+    // render bricks
+    for(int i = 0; i < PLAYFIELD_WIDTH; i++) 
     {
-        for(int j = 0; j < BOARD_HEIGHT; j++)
+        for(int j = 0; j < PLAYFIELD_HEIGHT; j++)
         {
             Brick brick = bricks[i][j];
 
@@ -56,30 +52,16 @@ void Board::Render(float deltatime)
             dstrect.w = BRICK_WIDTH;
             dstrect.h = BRICK_HEIGHT;
 
-            SDL_RenderCopy(mRend, bricktexture, &srcrect, &dstrect);
+            SDL_RenderCopy(mRend, texture, &srcrect, &dstrect);
         }
     }
-
-    // Render sides
-    SDL_Rect dstrect;
-    dstrect.x = 0; 
-    dstrect.y = 0;
-    dstrect.w = 16;
-    dstrect.h = 600;
-    SDL_RenderCopy(mRend, sidetexture, 0, &dstrect);
-
-    dstrect.x = 800 - 16; 
-    dstrect.y = 0;
-    dstrect.w = 16;
-    dstrect.h = 600;
-    SDL_RenderCopy(mRend, sidetexture, 0, &dstrect);
 }
 
-void Board::createLevel()
+void Playfield::NewLevel()
 {
-    for(int i = 0; i < BOARD_WIDTH; i++)
+    for(int i = 0; i < PLAYFIELD_WIDTH; i++)
     {
-        for(int j = 0; j < BOARD_HEIGHT; j++)
+        for(int j = 0; j < PLAYFIELD_HEIGHT; j++)
         {
             Brick brick;
             brick.type = rand() % 4; // 0 1 2 3 random color

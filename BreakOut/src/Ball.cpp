@@ -29,8 +29,8 @@ void Ball::Update(float deltatime)
 void Ball::Render(float deltatime)
 {
     SDL_Rect rect;
-    rect.x = int(x + 0.5f);
-    rect.y = int(y + 0.5f);
+    rect.x = x;
+    rect.y = y;
     rect.w = width;
     rect.h = height;
     SDL_RenderCopy(mRend, texture, nullptr, &rect);

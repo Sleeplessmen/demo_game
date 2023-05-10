@@ -3,8 +3,8 @@
 
 #include "Entity.h"
 
-#define BOARD_WIDTH 12
-#define BOARD_HEIGHT 12
+#define PLAYFIELD_WIDTH 12
+#define PLAYFIELD_HEIGHT 8
 #define BRICK_WIDTH 64
 #define BRICK_HEIGHT 24
 
@@ -15,25 +15,24 @@ public:
     bool state;
 };
 
-class Board: public Entity
+class Playfield: public Entity
 {
 public:
-    Board(SDL_Renderer* renderer);
-    ~Board();
+    Playfield(SDL_Renderer* renderer);
+    ~Playfield();
 
     void Update(float deltatime);
     void Render(float deltatime);
-    void createLevel();
+    void NewLevel();
 
     float brickoffsetx, brickoffsety;
 
     // define two-dimensional array of bricks
-    Brick bricks[BOARD_WIDTH][BOARD_HEIGHT];
+    Brick bricks[PLAYFIELD_WIDTH][PLAYFIELD_HEIGHT];
 
 private:
-    SDL_Texture* bricktexture;
-    SDL_Texture* sidetexture;
+    SDL_Texture* texture;
     
 };
 
-#endif /* BOARD */
+#endif /* Playfield */

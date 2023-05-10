@@ -1,12 +1,11 @@
 #include "Entity.h"
 
-Entity::Entity(SDL_Renderer* renderer)
+Entity::Entity(SDL_Renderer* renderer) : mRend(renderer)
 {
-    mRend = renderer;
     x = 0; 
     y = 0;
-    width = 1;
-    height = 1;
+    width = 0;
+    height = 0;
 }
 
 Entity::~Entity()

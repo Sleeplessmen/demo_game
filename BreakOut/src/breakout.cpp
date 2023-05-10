@@ -1,4 +1,4 @@
-#include "game.h"
+#include "breakout.h"
 #include <iostream> 
 #include <math.h>
 
@@ -22,7 +22,7 @@ bool Game::Init()
     }
 
     // create window
-    mWin = SDL_CreateWindow("BREAK OUT",
+    mWin = SDL_CreateWindow("Breakout Remake",
      SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL);
     if(!mWin)
     {
@@ -38,34 +38,26 @@ bool Game::Init()
         return false;
     }
 
-    // initilize resources
-    SDL_Surface* surface = IMG_Load("test.png");
-    mText = SDL_CreateTextureFromSurface(mRend, surface);
-    SDL_FreeSurface(surface);
-
     // initilize timing
     lasttick = SDL_GetTicks();
     fpstick = lasttick;
     fps = 0;
     framecount = 0;
 
-    testx = 0;
-    testy = 0;
-
     return true;
 }
 
-
 void Game::Run()
 {
-    mBoard = new Board(mRend);
+    mPlayfield = new Playfield(mRend);
     mPad = new Paddle(mRend);
     mBall = new Ball(mRend);
 
     NewGame();
 
+    bool isRunning = true;
     // Main loop
-    while (true) {
+    while (isRunning) {
         // Handler events
         SDL_Event e;
         if (SDL_PollEvent(&e)) {
@@ -73,19 +65,22 @@ void Game::Run()
             {
                 break;
             }
+            if (e.key.keysym.sym == SDLK_ESCAPE)
+            {   
+                break;
+            }
         }
 
         // Calculate delta and fps
         unsigned int curtick = SDL_GetTicks();
-        float dt = (curtick - lasttick) / 1000.0f;
-        if (curtick - fpstick >= FPS_DELAY) {
-            fps = framecount * (1000.0f / (curtick - fpstick));
+        float dt = (curtick - lasttick) / 1000.0f; // millisecond to second
+        if (curtick - fpstick >= FPS_DELAY) 
+        {
+            fps = framecount / ((curtick - fpstick) / 1000.0f); // frame per second
             fpstick = curtick;
             framecount = 0;
-            char buf[100];
-            snprintf(buf, 100, "Breakout_remake(fps: %u)", fps);
-            SDL_SetWindowTitle(mWin, buf);
         }
+
         else 
         {
             framecount++;
@@ -98,7 +93,7 @@ void Game::Run()
         Render(dt);
     }
 
-    delete mBoard;
+    delete mPlayfield;
     delete mPad;
     delete mBall;
 
@@ -116,26 +111,36 @@ void Game::Clean()
 
 void Game::Update(float deltatime)
 {
-    // Input
-    int mx, my;
-    Uint8 mstate = SDL_GetMouseState(&mx, &my);
-    SetPaddle(mx - mPad->width/2.0f);
-
-    if(mstate&SDL_BUTTON(1))
+    SDL_Event e;
+    if(SDL_PollEvent(&e))
     {
-        if(paddlestick)
+        if(e.key.keysym.sym == SDLK_ESCAPE)
         {
-            paddlestick = false;
-            mBall->SetDirection(1, -1);
+            SDL_QUIT;
         }
     }
 
-    if(paddlestick)
+    // Input
+    int mx, my;
+    Uint8 mousestate = SDL_GetMouseState(&mx, &my);
+    SetPaddle(mx - mPad->width / 2.0f);
+
+    // Move paddle when moving mouse and shoot of left click
+    if(mousestate & SDL_BUTTON(1))
     {
-        StickBall();
+        if(ballStickToPaddle)
+        {
+            ballStickToPaddle = false;
+            mBall->SetDirection(-1, -1);
+        }
     }
 
-    ball_boardCollisions();
+    if(ballStickToPaddle)
+    {
+        StickBallToPaddle();
+    }
+
+    ball_playfieldCollisions();
     ball_paddleCollisions();
     ball_brickCollisions();
 
@@ -144,18 +149,17 @@ void Game::Update(float deltatime)
         NewGame();
     }
 
-    mBoard->Update(deltatime);
+    mPlayfield->Update(deltatime);
     mPad->Update(deltatime);
-    mBall->Update(deltatime);
+    if(!ballStickToPaddle) mBall->Update(deltatime);
 }
 
 
 void Game::Render(float deltatime)
 {
-    SDL_SetRenderDrawColor(mRend, 0, 0, 0, 255);
     SDL_RenderClear(mRend);
 
-    mBoard->Render(deltatime);
+    mPlayfield->Render(deltatime);
     mPad->Render(deltatime);
     mBall->Render(deltatime);
 
@@ -164,15 +168,15 @@ void Game::Render(float deltatime)
 
 void Game::NewGame()
 {
-    mBoard->createLevel();
+    mPlayfield->NewLevel();
     ResetPaddle();
 }
 void Game::ResetPaddle()
 {  
-    paddlestick = true;
-    StickBall();
+    ballStickToPaddle = true;
+    StickBallToPaddle();
 }
-void Game::StickBall() 
+void Game::StickBallToPaddle() 
 {
     mBall->x = mPad->x + mPad->width/2 - mBall->width/2;
     mBall->y = mPad->y - mBall->height;
@@ -181,43 +185,47 @@ void Game::StickBall()
 void Game::SetPaddle(float x)
 {
     float newx;
-    if(x < mBoard->x)
+    if(x < mPlayfield->x)
     {
-        newx = mBoard->x;   
+        newx = mPlayfield->x;   
     }
-    else if (x + mPad->width > mBoard->x + mBoard->width)
+    else if (x + mPad->width > mPlayfield->x + mPlayfield->width)
     {
-        newx = mBoard->x + mBoard->width;
+        newx = mPlayfield->x + mPlayfield->width - mPad->width;
+    }
+    else 
+    {
+        newx = x;
     }
     
     mPad->x = newx;
 }
 
 
-void Game::ball_boardCollisions()
+void Game::ball_playfieldCollisions()
 {
     // top and bottom
-    if(mBall->y > mBoard->y)
+    if(mBall->y < mPlayfield->y)
     {
-        mBall->y = mBoard->y;
-        // reflect
+        mBall->y = mPlayfield->y;
+        // reflect in y-axis
         mBall->_ydir *= -1;
     } 
-    else if(mBall->y + mBall->height > mBoard->y + mBoard->height)
+    else if(mBall->y + mBall->height > mPlayfield->y + mPlayfield->height)
     {
-        // ball lost
+        // ball lost -> reset paddle and ball
         ResetPaddle();
     }
 
     // left and right
-    if(mBall->x <= mBoard->x)
+    if(mBall->x <= mPlayfield->x)
     {
-        mBall->x = mBoard->x;
+        mBall->x = mPlayfield->x;
         mBall->_xdir *= -1;
     }
-    else if(mBall->x + mBall->width >= mBoard->x + mBoard->width)
+    else if(mBall->x + mBall->width >= mPlayfield->x + mPlayfield->width)
     {
-        mBall->x = mBoard->x + mBoard->width - mBall->width;
+        mBall->x = mPlayfield->x + mPlayfield->width - mBall->width;
         mBall->_xdir *= -1;
     }
 }
@@ -253,19 +261,19 @@ void Game::ball_paddleCollisions()
 
 void Game::ball_brickCollisions()
 {
-    for(int i = 0; i < BOARD_WIDTH; i++)
+    for(int i = 0; i < PLAYFIELD_WIDTH; i++)
     {
-        for(int j = 0; j < BOARD_HEIGHT; j++)
+        for(int j = 0; j < PLAYFIELD_HEIGHT; j++)
         {
-            Brick brick = mBoard->bricks[i][j];
+            Brick brick = mPlayfield->bricks[i][j];
 
             if(brick.state)
             {
                 float ballcenter_x = mBall->x + mBall->width/2.0f;
                 float ballcenter_y = mBall->y + mBall->height/2.0f;
 
-                float brick_x = mBoard->x + mBoard->brickoffsetx + i*BRICK_WIDTH;
-                float brick_y = mBoard->y + mBoard->brickoffsety + j*BRICK_HEIGHT;
+                float brick_x = mPlayfield->x + mPlayfield->brickoffsetx + i*BRICK_WIDTH;
+                float brick_y = mPlayfield->y + mPlayfield->brickoffsety + j*BRICK_HEIGHT;
 
                 float brickcenter_x = brick_x + BRICK_WIDTH/2.0f;
                 float brickcenter_y = brick_y + BRICK_HEIGHT/2.0f;
@@ -274,7 +282,7 @@ void Game::ball_brickCollisions()
                 mBall->y < brick_y + BRICK_HEIGHT && mBall->y + mBall->height > brick_y)
                 {
                     // Collision detected, remove the brick 
-                    mBoard->bricks[i][j].state = false;
+                    mPlayfield->bricks[i][j].state = false;
                     float ymin = (brick_y > mBall->y) ? brick_y : mBall->y;
                     float ymax = (brick_y + BRICK_HEIGHT < mBall->y + mBall->height) ? brick_y + BRICK_HEIGHT : mBall->y + mBall->height;
                     float dy = ymax - ymin;
@@ -289,13 +297,13 @@ void Game::ball_brickCollisions()
                         {
                             // Bottom
                             mBall->y += dy + 0.01f;
-                            ball_brickResponse(3);   
+                            ball_brickReflection(3);   
                         }
                         else 
                         {
                             // Top
                             mBall->y -= dy + 0.01f;
-                            ball_brickResponse(1);
+                            ball_brickReflection(1);
                         }
                     }
                     else
@@ -304,13 +312,13 @@ void Game::ball_brickCollisions()
                         {
                             // Left 
                             mBall->x -= dx + 0.01f;
-                            ball_brickResponse(0);
+                            ball_brickReflection(0);
                         }
                         else 
                         {
                             // Right 
                             mBall->x += dx + 0.01f;
-                            ball_brickResponse(2);
+                            ball_brickReflection(2);
                         }
                     }
 
@@ -323,7 +331,7 @@ void Game::ball_brickCollisions()
 }
 
 
-void Game::ball_brickResponse(int dirindex)
+void Game::ball_brickReflection(int dirindex)
 {
     //dirindex 
     // 0-left 1-top 2-right 3-bottom
@@ -380,11 +388,11 @@ void Game::ball_brickResponse(int dirindex)
 int Game::GetBrickCount()
 {
     int brickcount = 0;
-    for(int i = 0; i < BOARD_WIDTH; i++)
+    for(int i = 0; i < PLAYFIELD_WIDTH; i++)
     {
-        for(int j = 0; j < BOARD_HEIGHT; j++)
+        for(int j = 0; j < PLAYFIELD_HEIGHT; j++)
         {
-            if(mBoard->bricks[i][j].state) brickcount++;
+            if(mPlayfield->bricks[i][j].state) brickcount++;
         }
     }
     return brickcount;

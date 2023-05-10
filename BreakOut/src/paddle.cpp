@@ -4,18 +4,17 @@
 Paddle::Paddle(SDL_Renderer* renderer): Entity(renderer)
 {
     SDL_Surface* surface = IMG_Load("src/paddle.png");
-    ptexture = SDL_CreateTextureFromSurface(renderer, surface);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
+    y = 560;
     width = 128;
     height = 32;
-
-    y = 560;
 }
 
 Paddle::~Paddle()
 {
-    SDL_DestroyTexture(ptexture);
+    SDL_DestroyTexture(texture);
 }
 
 void Paddle::Update(float deltatime)
@@ -26,9 +25,9 @@ void Paddle::Update(float deltatime)
 void Paddle::Render(float deltatime)
 {
     SDL_Rect rect;
-    rect.x = int(x + 0.5f);
-    rect.y = int(y + 0.5f);
+    rect.x = x;
+    rect.y = y;
     rect.w = width;
     rect.h = height;
-    SDL_RenderCopy(mRend, ptexture, nullptr, &rect);
+    SDL_RenderCopy(mRend, texture, nullptr, &rect);
 }
