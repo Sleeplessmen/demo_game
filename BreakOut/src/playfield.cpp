@@ -4,7 +4,7 @@
 
 Playfield::Playfield(SDL_Renderer* renderer): Entity(renderer)
 {
-    SDL_Surface* surface = IMG_Load("src/bricks.png");
+    SDL_Surface* surface = IMG_Load("src/bricks1.png");
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
@@ -14,9 +14,6 @@ Playfield::Playfield(SDL_Renderer* renderer): Entity(renderer)
     y = 0;
     width = 768;
     height = 600;
-
-    brickoffsetx = 0;
-    brickoffsety = 16;
 }
 
 
@@ -38,17 +35,17 @@ void Playfield::Render(float deltatime)
         for(int j = 0; j < PLAYFIELD_HEIGHT; j++)
         {
             Brick brick = bricks[i][j];
-
             if(!brick.state) continue;
+
             SDL_Rect srcrect;
-            srcrect.x = (brick.type%2) * BRICK_WIDTH;
-            srcrect.y = (brick.type/2) * BRICK_HEIGHT;
+            srcrect.x = 0;
+            srcrect.y = 0;
             srcrect.w = BRICK_WIDTH;
             srcrect.h = BRICK_HEIGHT;
 
             SDL_Rect dstrect;
-            dstrect.x = x + brickoffsetx + i*BRICK_WIDTH;
-            dstrect.y = y + brickoffsety + j*BRICK_HEIGHT;
+            dstrect.x = x + i*BRICK_WIDTH;
+            dstrect.y = y + j*BRICK_HEIGHT;
             dstrect.w = BRICK_WIDTH;
             dstrect.h = BRICK_HEIGHT;
 
@@ -64,8 +61,7 @@ void Playfield::NewLevel()
         for(int j = 0; j < PLAYFIELD_HEIGHT; j++)
         {
             Brick brick;
-            brick.type = rand() % 4; // 0 1 2 3 random color
-            brick.state = true; // Brick is present
+            brick.state = true;
             bricks[i][j] = brick;
         }
     }

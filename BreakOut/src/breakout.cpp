@@ -272,8 +272,8 @@ void Game::ball_brickCollisions()
                 float ballcenter_x = mBall->x + mBall->width/2.0f;
                 float ballcenter_y = mBall->y + mBall->height/2.0f;
 
-                float brick_x = mPlayfield->x + mPlayfield->brickoffsetx + i*BRICK_WIDTH;
-                float brick_y = mPlayfield->y + mPlayfield->brickoffsety + j*BRICK_HEIGHT;
+                float brick_x = mPlayfield->x + i*BRICK_WIDTH;
+                float brick_y = mPlayfield->y + j*BRICK_HEIGHT;
 
                 float brickcenter_x = brick_x + BRICK_WIDTH/2.0f;
                 float brickcenter_y = brick_y + BRICK_HEIGHT/2.0f;

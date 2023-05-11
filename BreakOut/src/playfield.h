@@ -11,7 +11,6 @@
 class Brick 
 {
 public:
-    int type;
     bool state;
 };
 
@@ -24,8 +23,6 @@ public:
     void Update(float deltatime);
     void Render(float deltatime);
     void NewLevel();
-
-    float brickoffsetx, brickoffsety;
 
     // define two-dimensional array of bricks
     Brick bricks[PLAYFIELD_WIDTH][PLAYFIELD_HEIGHT];

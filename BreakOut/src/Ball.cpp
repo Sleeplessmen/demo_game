@@ -3,7 +3,7 @@
 
 Ball::Ball(SDL_Renderer* renderer): Entity(renderer)
 {
-    SDL_Surface* surface = IMG_Load("src/ball.png");
+    SDL_Surface* surface = IMG_Load("src/ball1.png");
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
