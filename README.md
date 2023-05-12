@@ -11,6 +11,7 @@
 ## Hướng dẫn cài đặt
 - Tải và cài đặt [VS Code](https://code.visualstudio.com/download)
 - Tải và cài đặt các thư viện [SDL2](https://github.com/libsdl-org/SDL/releases/tag/release-2.26.5)
+- Clone respository từ github về rồi mở file breakout.exe để chơi game
 
 ## Cách chơi
 
@@ -28,6 +29,10 @@
 ### Hạn chế
 - không có đa dạng các level chơi
 - Tổ chức chương trình chưa tối ưu
+
+### Tham khảo
+[SDL2 Tutorial](https://lazyfoo.net/tutorials/SDL/)
+
 
 
 
